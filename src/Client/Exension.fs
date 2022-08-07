@@ -3,6 +3,15 @@ module Extension
 
 open Elmish
 
+type Deferred<'t> =
+    | HasNotStartedYet
+    | InProgress
+    | Resolved of 't
+
+type AsyncOperationStatus<'t> =
+    | Started
+    | Finished of 't
+
 module Cmd =
     let fromAsync (operation: Async<'msg>) : Cmd<'msg> =
         let delayedCmd (dispatch: 'msg -> unit) : unit =

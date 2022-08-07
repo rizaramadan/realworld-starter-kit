@@ -8,20 +8,25 @@ module Route =
 
 type UserLoginDto = {
     email:    string
-    password: string
-}
-type LoginRequest = {
-    user: UserLoginDto
-}
-
-type UserAuthDto = {
-    email:    string
     token:    string
     username: string
     bio:      string
     image:    string
 }
 
-type users = {
-    login: LoginRequest -> Async<UserAuthDto>
-}
+type LoginResult =
+    | UsernameOrPasswordIncorrect
+    | LoggedIn of UserLoginDto
+
+type Users =
+    static member login email password =
+        async {
+            return LoggedIn {
+                email = email;
+                token =    "token";
+                username = "username";
+                bio =      "bio";
+                image =    "image";
+            }
+        }
+

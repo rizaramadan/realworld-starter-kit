@@ -1,31 +1,33 @@
-﻿module Components.PageLogin
+﻿module Component.Login
 
 open Elmish
 open Feliz
 
+
+
 type State =
-    { Email: string
+    { Username: string
       Password: string
-      LoginAttempt: Deferred<Shared.LoginResult> }
+      LoginAttempt: Deferred<Api.LoginResult> }
 
 type Msg =
-    | EmailChanged of string
+    | UsernameChanged of string
     | PasswordChanged of string
-    | Login of AsyncOperationStatus<Shared.LoginResult>
+    | Login of AsyncOperationStatus<Api.LoginResult>
 
 let (|UserLoggedIn|_|) = function
-    | Msg.Login (Finished (Shared.LoginResult.LoggedIn user)) -> Some user
+    | Msg.Login (Finished (Api.LoginResult.LoggedIn user)) -> Some user
     | _ -> None
 
 let init() =
-    { Email = ""
+    { Username = ""
       Password = ""
       LoginAttempt = HasNotStartedYet }, Cmd.none
 
 let update (msg: Msg) (state: State) =
     match msg with
-    | EmailChanged email ->
-        { state with Email = email  }, Cmd.none
+    | UsernameChanged username ->
+        { state with Username = username  }, Cmd.none
 
     | PasswordChanged password ->
         { state with Password = password }, Cmd.none
@@ -33,7 +35,7 @@ let update (msg: Msg) (state: State) =
     | Login Started ->
         let nextState = { state with LoginAttempt = InProgress }
         let login = async {
-                let! loginResult = Shared.Users.login state.Email state.Password
+            let! loginResult = Api.login state.Username state.Password
             return Login (Finished loginResult)
         }
 
@@ -44,18 +46,18 @@ let update (msg: Msg) (state: State) =
         let nextState = { state with LoginAttempt = Resolved loginResult }
         nextState, Cmd.none
 
-let renderLoginOutcome (loginResult: Deferred<Shared.LoginResult>)=
+let renderLoginOutcome (loginResult: Deferred<Api.LoginResult>)=
     match loginResult with
-    | Resolved Shared.LoginResult.UsernameOrPasswordIncorrect ->
+    | Resolved Api.LoginResult.UsernameOrPasswordIncorrect ->
         Html.paragraph [
             prop.style [ style.color.crimson; style.padding 10 ]
             prop.text "Username or password is incorrect"
         ]
 
-    | Resolved (Shared.LoginResult.LoggedIn user) ->
+    | Resolved (Api.LoginResult.LoggedIn user) ->
         Html.paragraph [
             prop.style [ style.color.green; style.padding 10 ]
-            prop.text (sprintf "User '%s' has succesfully logged in" user.username)
+            prop.text (sprintf "User '%s' has succesfully logged in" user.Username)
         ]
 
     | otherwise ->
@@ -127,8 +129,8 @@ let render (state: State) (dispatch: Msg -> unit) =
                                     prop.className "input"
                                     prop.placeholder "Username"
                                     prop.type'.email
-                                    prop.valueOrDefault state.Email
-                                    prop.onChange (EmailChanged >> dispatch)
+                                    prop.valueOrDefault state.Username
+                                    prop.onChange (UsernameChanged >> dispatch)
                                 ]
 
                                 Html.span [
